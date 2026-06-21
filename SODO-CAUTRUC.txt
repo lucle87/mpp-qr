@@ -1,0 +1,50 @@
+==========================================
+  SO DO CAU TRUC THU MUC - DU AN mpp-qr
+==========================================
+
+Sau khi giai nen, phai dung Y HET cay nay:
+
+mpp-qr/
+|
+|-- app/
+|   |-- api/
+|   |   `-- qr/
+|   |       `-- route.ts          <- endpoint tao QR (co QRCode, generateQr)
+|   |
+|   |-- openapi.json/              <- DAY LA THU MUC (khong phai file!)
+|   |   `-- route.ts              <- discovery document (co openapi 3.1.0)
+|   |
+|   |-- layout.tsx
+|   `-- page.tsx
+|
+|-- lib/
+|   `-- config.ts
+|
+|-- package.json
+|-- tsconfig.json
+|-- next.config.js
+|-- .env.example
+|-- .gitignore
+`-- README.md
+
+
+LUU Y QUAN TRONG:
+- Co 2 file ten "route.ts" o 2 noi khac nhau:
+    1) app/api/qr/route.ts          (tao QR)
+    2) app/openapi.json/route.ts    (discovery)
+  Dung de lan.
+
+- "openapi.json" la mot THU MUC, ben trong co route.ts.
+  Day la cach Next.js tao duong dan /openapi.json
+
+CHAY THU:
+  cd mpp-qr
+  npm install
+  copy .env.example .env     (roi mo .env dien RECIPIENT_ADDRESS = vi cua ban)
+  npm run dev
+
+KIEM TRA:
+  http://localhost:3000              -> trang gioi thieu
+  http://localhost:3000/openapi.json -> phai ra JSON
+
+==========================================

@@ -17,6 +17,11 @@ export async function GET() {
         "Generate QR codes on demand. Pay-per-call via MPP on Tempo. No API key, no signup.",
       "x-guidance":
         "Use POST /api/qr to generate a QR code. Send a JSON body with a 'data' field (the text or URL to encode). Optional: 'size' (pixels, 128-1024), 'margin' (0-8), 'format' ('png' returns a base64 PNG data URL, 'svg' returns SVG markup). Returns the encoded QR image. Each call costs a small fixed fee paid in stablecoin on Tempo.",
+      contact: {
+        name: "QR Forge",
+        email: process.env.CONTACT_EMAIL || "vanlucpdu@gmail.com",
+        url: BASE_URL,
+      },
     },
     servers: [{ url: BASE_URL }],
     "x-discovery": {

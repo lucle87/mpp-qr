@@ -1,6 +1,6 @@
 // Endpoint tao QR, gate bang MPP.
-// Chua tra tien -> 402 kem WWW-Authenticate: Payment (challenge MPP).
-// Da tra -> sinh QR (local, mien phi) + tra ve kem receipt.
+// Thu tu dung: DOI TIEN TRUOC (402), validate 'data' SAU khi da tra.
+// Ep realm = domain chinh (tu BASE_URL) de khop khi dang ky mppscan + agent doc dung.
 
 import { NextRequest } from "next/server";
 import QRCode from "qrcode";
@@ -15,6 +15,15 @@ import {
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
+// Host domain chinh (tu BASE_URL) de ep realm.
+const REALM_HOST = (() => {
+  try {
+    return new URL(process.env.BASE_URL || "http://localhost:3000").host;
+  } catch {
+    return "localhost:3000";
+  }
+})();
+
 const mppx = Mppx.create({
   methods: [
     tempo({
@@ -24,6 +33,7 @@ const mppx = Mppx.create({
     }),
   ],
   secretKey: MPP_SECRET_KEY,
+  realm: REALM_HOST,
 });
 
 type Body = {
@@ -34,14 +44,42 @@ type Body = {
 };
 
 export async function POST(request: NextRequest) {
-  // Doc input truoc (clone vi mppx se doc body cho viec tra tien).
   let body: Body = {};
   try {
     body = await request.clone().json();
   } catch {
-    // bo qua
+    // bo qua, se validate sau khi tra tien
   }
 
+  // ===== MPP: THU PHI TRUOC (ep host = domain chinh) =====
+  let reqForMpp: Request = request;
+  try {
+    const fixedUrl = new URL(request.url);
+    fixedUrl.host = REALM_HOST;
+    fixedUrl.protocol = "https:";
+    const headers = new Headers(request.headers);
+    headers.set("host", REALM_HOST);
+    headers.set("x-forwarded-host", REALM_HOST);
+    reqForMpp = new Request(fixedUrl.toString(), {
+      method: request.method,
+      headers,
+      body: await request.clone().arrayBuffer(),
+    });
+  } catch {
+    reqForMpp = request;
+  }
+
+  const paid = await mppx.tempo.charge({
+    amount: PRICE_AMOUNT,
+    recipient: RECIPIENT_ADDRESS,
+  })(reqForMpp);
+
+  // Chua tra -> tra ve challenge 402.
+  if (paid.status === 402) {
+    return paid.challenge;
+  }
+
+  // ===== Da tra -> gio moi validate 'data' va sinh QR =====
   const data = (body.data || "").toString();
   if (!data.trim()) {
     return Response.json(
@@ -50,18 +88,6 @@ export async function POST(request: NextRequest) {
     );
   }
 
-  // ===== MPP: thu phi truoc khi tra ket qua =====
-  const paid = await mppx.tempo.charge({
-    amount: PRICE_AMOUNT,
-    recipient: RECIPIENT_ADDRESS,
-  })(request);
-
-  // Chua tra -> tra ve challenge 402 (co WWW-Authenticate: Payment).
-  if (paid.status === 402) {
-    return paid.challenge;
-  }
-
-  // ===== Da tra -> sinh QR =====
   const size = clampInt(body.size, 128, 1024, 512);
   const margin = clampInt(body.margin, 0, 8, 2);
   const format = body.format === "svg" ? "svg" : "png";

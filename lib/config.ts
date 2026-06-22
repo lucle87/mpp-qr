@@ -19,8 +19,8 @@ export const CONFIG: Record<NetworkName, Net> = {
     rpcHttp: "https://rpc.tempo.xyz",
     explorer: "https://explore.tempo.xyz",
     payToken: {
-      symbol: "USDT0",
-      address: "0x20c00000000000000000000014f22ca97301eb73",
+      symbol: "USDC",
+      address: "0x20c000000000000000000000b9537d11c60e8b50",
       decimals: 6,
     },
     testnet: false,

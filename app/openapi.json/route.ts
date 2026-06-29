@@ -37,6 +37,16 @@ export async function GET() {
           operationId: "generateQr",
           summary: "Generate QR - Create a QR code from text or a URL",
           tags: ["utility", "qr-code", "barcode", "image-generation", "encoding"],
+          "x-agent-guidance": {
+            whenToUse:
+              'Use when an agent needs to turn text or a URL into a QR code (payment links, share links, onboarding flows).',
+            input:
+              'POST JSON: { data (text or URL to encode) }.',
+            output:
+              'A QR code image / data encoding the input.',
+            paymentFlow:
+              'First call returns HTTP 402 with a Tempo MPP challenge. Pay with mppx (USDC.e on Tempo), then retry the same request to get 200.',
+          },
           "x-payment-info": {
             price: { mode: "fixed", amount: PRICE, currency: "USD" },
             protocols: [{ mpp: {} }],
